@@ -1,81 +1,125 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import messagebox
+import main as logic
 
+# Initialisation du prix
+logic.prix = logic.changer_prix()
+
+# Fenêtre principale
 root = tk.Tk()
-root.title("Zoo Daiza Pairi")
-root.geometry("1000x700")
-root.configure(bg="#EDE3E3")
+root.title("Simulation de Bourse")
+root.geometry("500x600")
+root.configure(bg="#f3f4f6")
 
-# ================= HEADER =================
-header = tk.Frame(root, bg="black", height=300)
-header.pack(fill="x")
+# ====== FONCTIONS ======
 
-title = tk.Label(header, text="Bienvenue", fg="white", bg="black",
-                 font=("Arial", 32, "bold"))
-title.place(relx=0.5, rely=0.35, anchor="center")
+def refresh():
+    state = logic.get_state()
+    label_jour.config(text=state["jour"])
+    label_prix.config(text=f"{state['prix']} €")
+    label_argent.config(text=f"{state['argent']} €")
+    label_stock.config(text=state["stock"])
 
-subtitle = tk.Label(header, text="Au zoo de Daiza Pairi",
-                    fg="white", bg="black",
-                    font=("Arial", 18))
-subtitle.place(relx=0.5, rely=0.55, anchor="center")
+def get_quantite():
+    try:
+        q = int(entry_quantite.get())
+        if q <= 0:
+            raise ValueError
+        return q
+    except:
+        messagebox.showerror("Erreur", "Quantité invalide")
+        return None
 
-def scroll_to_content():
-    content_frame.focus_set()
+def acheter():
+    quantite = get_quantite()
+    if quantite is None:
+        return
 
-btn = tk.Button(header, text="Nous découvrir ↓",
-                bg="#16a34a", fg="white",
-                font=("Arial", 12, "bold"),
-                command=scroll_to_content)
-btn.place(relx=0.5, rely=0.75, anchor="center")
+    result = logic.effectuer_achat(quantite)
 
-# ================= CONTENT =================
-content_frame = tk.Frame(root, bg="white", padx=20, pady=20)
-content_frame.pack(pady=20, padx=20, fill="both", expand=True)
+    if result != "OK":
+        messagebox.showerror("Erreur", result)
 
-title2 = tk.Label(content_frame,
-                  text="🌿 Bienvenue au Zoo Daiza Pairi",
-                  fg="#15803d",
-                  bg="white",
-                  font=("Arial", 20, "bold"))
-title2.pack(pady=10)
+    refresh()
 
-text = tk.Label(content_frame,
-                text=("Entrez dans un sanctuaire naturel unique en Europe.\n"
-                      "Une expérience immersive et inoubliable."),
-                bg="white",
-                fg="gray",
-                font=("Arial", 12),
-                justify="center")
-text.pack(pady=10)
+def vendre():
+    quantite = get_quantite()
+    if quantite is None:
+        return
 
-# Buttons section
-btn_frame = tk.Frame(content_frame, bg="white")
-btn_frame.pack(pady=15)
+    result = logic.effectuer_vente(quantite)
 
-tk.Button(btn_frame, text="🐾 Explorer les animaux",
-          bg="#16a34a", fg="white", padx=10, pady=5).pack(side="left", padx=10)
+    if result != "OK":
+        messagebox.showerror("Erreur", result)
 
-tk.Button(btn_frame, text="🎉 Événements à venir",
-          bg="#16a34a", fg="white", padx=10, pady=5).pack(side="left", padx=10)
+    refresh()
 
-# Separator
-ttk.Separator(content_frame, orient="horizontal").pack(fill="x", pady=20)
+def jour_suivant():
+    logic.jour += 1
+    logic.prix = logic.changer_prix()
+    refresh()
 
-quote = tk.Label(content_frame,
-                 text="« Un voyage à travers les continents et les espèces. »",
-                 bg="white",
-                 fg="gray",
-                 font=("Arial", 11, "italic"))
-quote.pack(pady=10)
+# ====== UI ======
 
-# Calendar placeholder
-calendar_frame = tk.Frame(content_frame, bg="#EDE3E3", height=200)
-calendar_frame.pack(fill="x", pady=20)
+frame = tk.Frame(root, bg="white", padx=20, pady=20)
+frame.pack(padx=20, pady=20, fill="both", expand=True)
 
-calendar_label = tk.Label(calendar_frame,
-                          text="📅 Calendrier (version simplifiée)",
-                          bg="#EDE3E3",
-                          font=("Arial", 14))
-calendar_label.pack(pady=50)
+title = tk.Label(frame, text="Simulation de Bourse", font=("Arial", 18, "bold"))
+title.pack(pady=10)
+
+# Infos
+info_frame = tk.Frame(frame)
+info_frame.pack(pady=10)
+
+def create_box(parent, label_text):
+    box = tk.Frame(parent, bg="#f9fafb", padx=10, pady=10)
+    title = tk.Label(box, text=label_text, fg="gray")
+    value = tk.Label(box, text="", font=("Arial", 12, "bold"))
+    title.pack()
+    value.pack()
+    return box, value
+
+box1, label_jour = create_box(info_frame, "Jour")
+box2, label_prix = create_box(info_frame, "Prix de l'action")
+box3, label_argent = create_box(info_frame, "Solde")
+box4, label_stock = create_box(info_frame, "Actions détenues")
+
+box1.grid(row=0, column=0, padx=5, pady=5)
+box2.grid(row=0, column=1, padx=5, pady=5)
+box3.grid(row=1, column=0, padx=5, pady=5)
+box4.grid(row=1, column=1, padx=5, pady=5)
+
+# Transaction
+trans_frame = tk.Frame(frame, bg="#f9fafb", padx=10, pady=10)
+trans_frame.pack(pady=20, fill="x")
+
+tk.Label(trans_frame, text="Transactions", font=("Arial", 12, "bold")).pack(pady=5)
+
+entry_quantite = tk.Entry(trans_frame)
+entry_quantite.pack(pady=10)
+
+btn_frame = tk.Frame(trans_frame)
+btn_frame.pack()
+
+btn_buy = tk.Button(btn_frame, text="Acheter", bg="green", fg="white", width=12, command=acheter)
+btn_sell = tk.Button(btn_frame, text="Vendre", bg="red", fg="white", width=12, command=vendre)
+
+btn_buy.grid(row=0, column=0, padx=5)
+btn_sell.grid(row=0, column=1, padx=5)
+
+# Bouton jour suivant
+btn_next = tk.Button(
+    frame,
+    text="Passer au jour suivant",
+    bg="blue",
+    fg="white",
+    padx=10,
+    pady=5,
+    command=jour_suivant
+)
+btn_next.pack(pady=20)
+
+# Initialisation affichage
+refresh()
 
 root.mainloop()

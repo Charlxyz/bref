@@ -4,6 +4,7 @@ argent = 100
 stock = 0
 limite_stock = 10
 jour = 1
+prix = 0
 
 def afficher_statut():
     print("\n--- JOUR", jour, "---")
@@ -18,70 +19,94 @@ def menu():
     print("3 - Passer au jour suivant")
     print("4 - Quitter")
 
-def acheter():
+def acheter_console():
     global argent, stock
     try:
         quantite = int(input("Combien veux-tu acheter ? "))
     except ValueError:
-        print("Valeur invalide. Entre un nombre entier.")
+        print("Valeur invalide.")
         return
 
-    if quantite <= 0:
-        print("La quantité doit être positive.")
-        return
+    effectuer_achat(quantite)
 
-    cout = quantite * prix
-    if cout > argent:
-        print("Pas assez d'argent !")
-        return
-
-    if stock + quantite > limite_stock:
-        print("Pas assez d'espace dans le stock !")
-        return
-
-    argent -= cout
-    stock += quantite
-    print("Achat réussi !")
-
-
-def vendre():
+def vendre_console():
     global argent, stock
     try:
         quantite = int(input("Combien veux-tu vendre ? "))
     except ValueError:
-        print("Valeur invalide. Entre un nombre entier.")
+        print("Valeur invalide.")
         return
+
+    effectuer_vente(quantite)
+
+# ✅ Fonctions utilisables par Tkinter
+def effectuer_achat(quantite):
+    global argent, stock
 
     if quantite <= 0:
-        print("La quantité doit être positive.")
-        return
+        return "Quantité invalide"
 
-    if quantite <= stock:
-        argent += quantite * prix
-        stock -= quantite
-        print("Vente réussie !")
-    else:
-        print("Pas assez de stock !")
+    cout = quantite * prix
+
+    if cout > argent:
+        return "Pas assez d'argent"
+
+    if stock + quantite > limite_stock:
+        return "Stock plein"
+
+    argent -= cout
+    stock += quantite
+    return "OK"
+
+def effectuer_vente(quantite):
+    global argent, stock
+
+    if quantite <= 0:
+        return "Quantité invalide"
+
+    if quantite > stock:
+        return "Pas assez de stock"
+
+    argent += quantite * prix
+    stock -= quantite
+    return "OK"
 
 def changer_prix():
     return random.randint(1, 20)
 
-# boucle principale
-while True:
-    prix = changer_prix()
-    afficher_statut()
-    menu()
+# ✅ Fonction pour récupérer les valeurs (utile Tkinter)
+def get_state():
+    return {
+        "jour": jour,
+        "argent": argent,
+        "stock": stock,
+        "prix": prix,
+        "limite": limite_stock
+    }
 
-    choix = input("Choix : ")
+# ✅ Boucle console isolée
+def main():
+    global prix, jour
 
-    if choix == "1":
-        acheter()
-    elif choix == "2":
-        vendre()
-    elif choix == "3":
-        jour += 1
-    elif choix == "4":
-        print("Fin du jeu.")
-        break
-    else:
-        print("Choix invalide.")
+    while True:
+        prix = changer_prix()
+        afficher_statut()
+        menu()
+
+        choix = input("Choix : ")
+
+        if choix == "1":
+            acheter_console()
+        elif choix == "2":
+            vendre_console()
+        elif choix == "3":
+            jour += 1
+        elif choix == "4":
+            print("Fin du jeu.")
+            break
+        else:
+            print("Choix invalide.")
+
+# ⚠️ IMPORTANT
+if __name__ == "__main__":
+    main()
