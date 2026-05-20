@@ -1,13 +1,3 @@
-"""
-╔══════════════════════════════════════════════════════════════╗
-║                        MERCATOR                              ║
-║              Jeu de commerce stratégique                     ║
-╚══════════════════════════════════════════════════════════════╝
-
-Auteur : version améliorée à partir d'un code NSI
-Niveau  : Lycée / NSI (Python pur, bibliothèque standard uniquement)
-"""
-
 import random
 import time
 import os
